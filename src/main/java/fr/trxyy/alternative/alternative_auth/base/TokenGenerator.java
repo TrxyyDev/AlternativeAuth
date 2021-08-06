@@ -1,4 +1,4 @@
-package fr.trxyy.alternative.alternative_auth;
+package fr.trxyy.alternative.alternative_auth.base;
 
 import java.security.SecureRandom;
 

@@ -1,4 +1,4 @@
-package fr.trxyy.alternative.alternative_auth;
+package fr.trxyy.alternative.alternative_auth.base;
 
 import fr.trxyy.alternative.alternative_auth.account.AccountType;
 import javafx.application.Application;

@@ -17,9 +17,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.json.simple.JSONObject;
 
-import fr.trxyy.alternative.alternative_auth.AuthConstants;
-import fr.trxyy.alternative.alternative_auth.Logger;
 import fr.trxyy.alternative.alternative_auth.account.Session;
+import fr.trxyy.alternative.alternative_auth.base.AuthConstants;
+import fr.trxyy.alternative.alternative_auth.base.Logger;
 import fr.trxyy.alternative.alternative_auth.microsoft.model.MicrosoftModel;
 import fr.trxyy.alternative.alternative_auth.microsoft.model.MinecraftMicrosoftModel;
 import fr.trxyy.alternative.alternative_auth.microsoft.model.MinecraftProfileModel;
