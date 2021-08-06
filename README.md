@@ -11,7 +11,7 @@
 
 ```
 		Authentication gameAuth = new Authentication(null, null, AccountType.MICROSOFT);
-		gameAuth.connectMicrosoft(contentPane);com/google/guava/guava/21.0/guava-21.0.jar
+		gameAuth.connectMicrosoft(contentPane);
 ```
 
 ## Example class
