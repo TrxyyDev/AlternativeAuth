@@ -7,11 +7,27 @@
 - Download latest version [HERE](https://github.com/TrxyyDev/AlternativeAuth/releases/latest)
 - You can use my launcher sources [HERE](https://github.com/TrxyyDev/AlternativeAPI-launcher)
 
-## How to use
+## How to use (Microsoft)
 
 ```
-		Authentication gameAuth = new Authentication(null, null, AccountType.MICROSOFT);
-		gameAuth.connectMicrosoft(contentPane);
+		Authentication gameAuth = new Authentication(AccountType.MICROSOFT);
+		gameAuth.connectMicrosoft(contentPane); // contentPane == your Parent pane
+		
+		if (gameAuth.isLogged()) {
+			// your action when the auth successful.
+		}
+		
+```
+
+## How to use (Mojang / Offline)
+
+```
+		Authentication gameAuth = new Authentication("username", "password", AccountType.MOJANG); // MOJANG / OFFLINE
+		
+		if (gameAuth.isLogged()) {
+			// your action when the auth successful.
+		}
+		
 ```
 
 ## Example class
@@ -25,8 +41,15 @@ public class Example extends Application {
 	
 	private static Parent createMicrosoftPanel() {
 		Pane contentPane = new Pane();
-		Authentication gameAuth = new Authentication(null, null, AccountType.MICROSOFT);
+		Authentication gameAuth = new Authentication(AccountType.MICROSOFT);
 		gameAuth.connectMicrosoft(contentPane);
+		
+		if (gameAuth.isLogged()) {
+			System.out.println("Your username is " + gameAuth.getSession().getUsername());
+			System.out.println("Your token is " + gameAuth.getSession().getToken());
+			System.out.println("Your userID is " + gameAuth.getSession().getUuid());
+		}
+		
 		return contentPane;
 	}
 
