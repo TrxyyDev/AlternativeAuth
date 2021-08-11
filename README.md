@@ -41,11 +41,19 @@ public class Example extends Application {
 
 	private static Parent createMicrosoftPanel() {
 		Pane contentPane = new Pane();
+		tryLogin(contentPane);
+
+		return contentPane;
+	}
+
+	private static void tryLogin(Pane contentPane) {
 		/** Set the Authentication to Microsoft services **/
 		GameAuth gameAuth = new GameAuth(AccountType.MICROSOFT);
 		gameAuth.connectMicrosoft(contentPane);
+		
 		/** Set the Authentication to Mojang services **/
 		GameAuth gameAuth = new GameAuth("mail_adress", "secret_password", AccountType.MOJANG);
+		
 		/** Set the Authentication to Offline (no authentication required) **/
 		GameAuth gameAuth = new GameAuth("super_username", "not_required", AccountType.OFFLINE);
 
@@ -54,8 +62,6 @@ public class Example extends Application {
 			Logger.log("Your token is " + gameAuth.getSession().getToken());
 			Logger.log("Your userID is " + gameAuth.getSession().getUuid());
 		}
-
-		return contentPane;
 	}
 
 	@Override
@@ -70,5 +76,4 @@ public class Example extends Application {
 		stage.show();
 	}
 }
-
 ```
