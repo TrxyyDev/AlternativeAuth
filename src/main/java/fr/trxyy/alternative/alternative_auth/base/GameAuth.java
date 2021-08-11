@@ -26,11 +26,11 @@ import javafx.stage.Stage;
 /**
  * @author Trxyy
  */
-public class Authentication {
+public class GameAuth {
 	/**
 	 * Is player authed ?
 	 */
-	public boolean isAuthed = false;
+	public boolean isAuthenticated = false;
 	/**
 	 * The session
 	 */
@@ -43,22 +43,20 @@ public class Authentication {
 	 * @param pwd  The password
 	 * @param type The account Type (Mojang/Offline)
 	 */
-	public Authentication(String user, String pwd, AccountType type) {
+	public GameAuth(String user, String pwd, AccountType type) {
 		if (type.equals(AccountType.MOJANG)) {
-			this.session.setUsername(user);
 			this.connectMinecraft(user, pwd);
 		} else if (type.equals(AccountType.OFFLINE)) {
-			this.isAuthed = true;
-			this.session.setUsername(user);
-			this.session.setToken(TokenGenerator.generateToken(user));
-			this.session.setUuid(UUID.randomUUID().toString().replace("-", ""));
+			this.setSession(user, TokenGenerator.generateToken(user), UUID.randomUUID().toString().replace("-", ""));
 		}
 	}
+
+	public GameAuth(AccountType type) {}
 
 	/**
 	 * Connect to minecraft with a Microsoft account
 	 * 
-	 * @param root The parent to show
+	 * @param root The parent to show in
 	 * @return The result in a WebView
 	 */
 	public WebView connectMicrosoft(Pane root) {
@@ -74,17 +72,13 @@ public class Authentication {
 				c.getAddedSubList().forEach(entry -> {
 					try {
 						if (entry.getUrl().startsWith(AuthConstants.MICROSOFT_RESPONSE_URL)) {
-							String authCode = entry.getUrl().substring(entry.getUrl().indexOf("=") + 1,
-									entry.getUrl().indexOf("&"));
-							Session session = new MicrosoftAuth().getAuthorizationCode(authCode);
-							this.session.setUsername(session.getUsername());
-							this.session.setToken(session.getToken());
-							this.session.setUuid(session.getUuid());
+							String authCode = entry.getUrl().substring(entry.getUrl().indexOf("=") + 1, entry.getUrl().indexOf("&"));
+							Session result = new MicrosoftAuth().getAuthorizationCode(authCode);
+							this.setSession(result.getUsername(), result.getToken(), result.getUuid());
 							Stage stage = (Stage) root.getScene().getWindow();
 							stage.close();
-							this.isAuthed = true;
 						} else {
-							this.isAuthed = false;
+							this.isAuthenticated = false;
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -94,6 +88,20 @@ public class Authentication {
 			}
 		});
 		return webView;
+	}
+	
+	/**
+	 * Set the session credentials
+	 * @param user
+	 * @param token
+	 * @param id
+	 */
+	private void setSession(String user, String token, String id) {
+		this.session.setUsername(user);
+		this.session.setToken(token);
+		this.session.setUuid(id);
+		this.isAuthenticated = true;
+		Logger.log("Connected Successfully !");
 	}
 
 	/**
@@ -105,7 +113,6 @@ public class Authentication {
 	 */
 	public void connectMinecraft(String username, String password) {
 		CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-
 		try {
 			HttpPost httpPost = new HttpPost(AuthConstants.MOJANG_BASE_URL);
 			StringEntity parameters = new StringEntity("{\"agent\":{\"name\":\"Minecraft\",\"version\":1},\"username\":\"" + username + "\",\"password\":\"" + password + "\"}", ContentType.create(AuthConstants.APP_JSON));
@@ -115,15 +122,11 @@ public class Authentication {
 			BufferedReader bufferedReader = new BufferedReader(
 					new InputStreamReader(closeableHttpResponse.getEntity().getContent()));
 			String jsonResponse = bufferedReader.readLine();
-			Logger.log("Authentication Result: " + jsonResponse);
 			if (!jsonResponse.contains("\"name\"")) {
-				this.isAuthed = false;
+				this.isAuthenticated = false;
 			}
 			MojangAuthResult authResult = AuthConstants.getGson().fromJson(jsonResponse, MojangAuthResult.class);
-			this.session.setUsername(authResult.getSelectedProfile().getName());
-			this.session.setToken(authResult.getAccessToken());
-			this.session.setUuid(authResult.getSelectedProfile().getId());
-			this.isAuthed = true;
+			this.setSession(authResult.getSelectedProfile().getName(), authResult.getAccessToken(), authResult.getSelectedProfile().getId());
 		} catch (Exception exception) {
 			try {
 				httpClient.close();
@@ -140,10 +143,10 @@ public class Authentication {
 	}
 
 	/**
-	 * @return If the user is Authed
+	 * @return  If the user is successfully authenticated
 	 */
 	public boolean isLogged() {
-		return this.isAuthed;
+		return this.isAuthenticated;
 	}
 
 	/**

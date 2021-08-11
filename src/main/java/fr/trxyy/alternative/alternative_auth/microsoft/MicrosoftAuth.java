@@ -17,6 +17,8 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.json.simple.JSONObject;
 
+import com.sun.org.apache.bcel.internal.classfile.Code;
+
 import fr.trxyy.alternative.alternative_auth.account.Session;
 import fr.trxyy.alternative.alternative_auth.base.AuthConstants;
 import fr.trxyy.alternative.alternative_auth.base.Logger;
@@ -28,53 +30,43 @@ import fr.trxyy.alternative.alternative_auth.microsoft.model.XboxLiveModel;
 
 public class MicrosoftAuth {
 	
+	public MicrosoftAuth() {
+		Logger.log("Connecting to Microsoft services...");
+	}
+	
     public Session getAuthorizationCode(String authCode) throws Exception
     {
             MicrosoftModel model = AuthConstants.getGson().fromJson(this.connectMicrosoft(authCode), MicrosoftModel.class);
-            Logger.log("authorizationCode: " + model.getAccess_token());
             return this.getLiveToken(model.getAccess_token());
     }
     
     private Session getLiveToken(String accessToken) throws Exception
     {
     		XboxLiveModel model = AuthConstants.getGson().fromJson(this.postInformations(ParamType.XBL, AuthConstants.MICROSOFT_AUTHENTICATE_XBOX, accessToken, null), XboxLiveModel.class);
-        	Logger.log("XBLive Token: " + model.getToken());
         	return this.getXsts(model.getToken());
     }
 
     private Session getXsts(String liveToken) throws Exception
     {
             XboxLiveModel model = AuthConstants.getGson().fromJson(this.postInformations(ParamType.XSTS, AuthConstants.MICROSOFT_AUTHORIZE_XSTS, liveToken, null), XboxLiveModel.class);
-            Logger.log("Xsts Token: " + model.getToken());
-            Logger.log("UserHash:  " + model.getDisplayClaims().getUsers()[0].getUhs());
             return this.getMinecraftToken(model.getDisplayClaims().getUsers()[0].getUhs(), model.getToken());
     }
     
-    private Session getMinecraftToken(String userHash, String xsts) throws Exception
+    private Session getMinecraftToken(String userHash, String xstsToken) throws Exception
     {
-    	MinecraftMicrosoftModel model = AuthConstants.getGson().fromJson(this.postInformations(ParamType.MC, AuthConstants.MICROSOFT_LOGIN_XBOX, userHash, xsts), MinecraftMicrosoftModel.class);
-		Logger.log("access_token: " +  model.getAccess_token());
-		Logger.log("expires: " +  model.getExpires_in());
-		Logger.log("token type: " +  model.getToken_type());
-		Logger.log("username: " +  model.getUsername());
+    	MinecraftMicrosoftModel model = AuthConstants.getGson().fromJson(this.postInformations(ParamType.MC, AuthConstants.MICROSOFT_LOGIN_XBOX, userHash, xstsToken), MinecraftMicrosoftModel.class);
 		return this.checkMinecraftStore(model.getToken_type(), model.getAccess_token());
     }
 
     private Session checkMinecraftStore(String tokenType, String mcAccessToken)
     {
     	 MinecraftStoreModel model = AuthConstants.getGson().fromJson(this.connectToMinecraft(AuthConstants.MICROSOFT_MINECRAFT_STORE, tokenType + " " + mcAccessToken), MinecraftStoreModel.class);
-    	 Logger.log("keyId: " + model.getKeyId());
-    	 Logger.log("signature: " + model.getSignature());
-    	 Logger.log("items: " + model.getItems());
     	 return this.getMinecraftProfile(tokenType, mcAccessToken);
     }
 
     private Session getMinecraftProfile(String tokenType, String mcAccessToken)
     {
     	MinecraftProfileModel model = AuthConstants.getGson().fromJson(this.connectToMinecraft(AuthConstants.MICROSOFT_MINECRAFT_PROFILE, tokenType + " " + mcAccessToken), MinecraftProfileModel.class);
-    	Logger.log("id: " + model.getId());
-    	Logger.log("name: " + model.getName());
-    	Logger.log("skins: " + model.getSkins());
 		final String uuidValid = model.getId().replaceFirst("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5");
 		return new Session(model.getName(), mcAccessToken, uuidValid);
     }
@@ -137,14 +129,14 @@ public class MicrosoftAuth {
         return "";
     }
     
-    private String postInformations(ParamType type, String url, String authCode, String code2)
+    private String postInformations(ParamType type, String url, String par3String, String par4String)
     {
         HttpsURLConnection httpUrlConnection = null;
         BufferedReader bufferedReader = null;
         byte[] bytes = null;
         String json = "";
         try {
-        	bytes = new JSONObject(this.getAuthParameters(type, authCode, code2)).toJSONString().getBytes(AuthConstants.UTF_8);
+        	bytes = new JSONObject(this.getAuthParameters(type, par3String, par4String)).toJSONString().getBytes(AuthConstants.UTF_8);
 			httpUrlConnection = (HttpsURLConnection) new URL(url).openConnection();
 			httpUrlConnection.setRequestMethod("POST");
 			httpUrlConnection.setRequestProperty("Content-Type", AuthConstants.APP_JSON);
@@ -180,14 +172,14 @@ public class MicrosoftAuth {
         return "";
     }
     
-	private String connectToMinecraft(String url, String fullAuthorization) {
+	private String connectToMinecraft(String url, String fullCodeAuthorization) {
 		BufferedReader bufferedReader = null;
 		HttpURLConnection httpUrlConnection = null;
 		String json = "";
 		try {
 			httpUrlConnection = (HttpsURLConnection) new URL(url).openConnection();
 			httpUrlConnection.setRequestProperty("Accept", AuthConstants.APP_JSON);
-			httpUrlConnection.setRequestProperty("Authorization", fullAuthorization);
+			httpUrlConnection.setRequestProperty("Authorization", fullCodeAuthorization);
 			httpUrlConnection.setDoOutput(false);
 			httpUrlConnection.setDoInput(true);
 			if(httpUrlConnection.getResponseCode() == HttpsURLConnection.HTTP_OK) {
@@ -208,8 +200,6 @@ public class MicrosoftAuth {
 				}
 				json = stringBuilder.toString();
 			}
-			
-			Logger.log("logged:    " + json);
 
 	} catch (Exception e) {
 		e.printStackTrace();
@@ -220,13 +210,13 @@ public class MicrosoftAuth {
 	return json;
 	}
     
-    protected Map<Object, Object> getAuthParameters(ParamType param, String code, String code2)
+    protected Map<Object, Object> getAuthParameters(ParamType param, String par2String, String par3String)
     {
         Map<Object, Object> parameters = new HashMap<Object, Object>();
         
         if (param.equals(ParamType.AUTH)) {
             parameters.put("client_id", "00000000402b5328");
-            parameters.put("code", code);
+            parameters.put("code", par2String);
             parameters.put("grant_type", "authorization_code");
             parameters.put("redirect_uri", "https://login.live.com/oauth20_desktop.srf");
             parameters.put("scope", "service::user.auth.xboxlive.com::MBI_SSL");
@@ -236,7 +226,7 @@ public class MicrosoftAuth {
             final Map<Object, Object> properties = new HashMap<Object, Object>();
             properties.put("AuthMethod", "RPS");
             properties.put("SiteName", "user.auth.xboxlive.com");
-            properties.put("RpsTicket", code);
+            properties.put("RpsTicket", par2String);
             parameters.put("Properties", properties);
             parameters.put("RelyingParty", "http://auth.xboxlive.com");
             parameters.put("TokenType", "JWT");
@@ -245,24 +235,15 @@ public class MicrosoftAuth {
         if (param.equals(ParamType.XSTS)) {
             final Map<Object, Object> properties = new HashMap<Object, Object>();
             properties.put("SandboxId", "RETAIL");
-            properties.put("UserTokens", Collections.singletonList(code));
+            properties.put("UserTokens", Collections.singletonList(par2String));
             parameters.put("Properties", properties);
             parameters.put("RelyingParty", "rp://api.minecraftservices.com/");
             parameters.put("TokenType", "JWT");
         }
         
         if (param.equals(ParamType.MC)) {
-            parameters.put("identityToken", "XBL3.0 x=" + code + ";" + code2);
+            parameters.put("identityToken", "XBL3.0 x=" + par2String + ";" + par3String);
         }
         return parameters;
     }
-    
-	public static void main(String[] args) {
-		try {
-			new MicrosoftAuth().getAuthorizationCode("M.R3_BL2.41dd4d80-7e6b-9e97-52a7-6ee1ab67af4c");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
 }
