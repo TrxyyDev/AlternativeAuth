@@ -38,19 +38,30 @@ public class Example extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
-	
+
 	private static Parent createMicrosoftPanel() {
 		Pane contentPane = new Pane();
-		Authentication gameAuth = new Authentication(AccountType.MICROSOFT);
+		/** Login Method **/
+		tryLogin(contentPane);
+		return contentPane;
+	}
+
+	private static void tryLogin(Pane contentPane) {
+		/** Set the Authentication to Microsoft services **/
+		GameAuth gameAuth = new GameAuth(AccountType.MICROSOFT);
 		gameAuth.connectMicrosoft(contentPane);
 		
-		if (gameAuth.isLogged()) {
-			System.out.println("Your username is " + gameAuth.getSession().getUsername());
-			System.out.println("Your token is " + gameAuth.getSession().getToken());
-			System.out.println("Your userID is " + gameAuth.getSession().getUuid());
-		}
+		/** Set the Authentication to Mojang services **/
+		GameAuth gameAuth = new GameAuth("mail_adress", "secret_password", AccountType.MOJANG);
 		
-		return contentPane;
+		/** Set the Authentication to Offline (no authentication required) **/
+		GameAuth gameAuth = new GameAuth("super_username", "not_required", AccountType.OFFLINE);
+
+		if (gameAuth.isLogged()) {
+			Logger.log("Your username is " + gameAuth.getSession().getUsername());
+			Logger.log("Your token is " + gameAuth.getSession().getToken());
+			Logger.log("Your userID is " + gameAuth.getSession().getUuid());
+		}
 	}
 
 	@Override
