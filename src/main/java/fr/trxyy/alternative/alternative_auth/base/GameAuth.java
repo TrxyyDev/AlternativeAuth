@@ -44,6 +44,7 @@ public class GameAuth {
 	 * @param type The account Type (Mojang/Offline)
 	 */
 	public GameAuth(String user, String pwd, AccountType type) {
+		AuthConstants.displayCopyrights();
 		if (type.equals(AccountType.MOJANG)) {
 			this.connectMinecraft(user, pwd);
 		} else if (type.equals(AccountType.OFFLINE)) {
@@ -51,7 +52,9 @@ public class GameAuth {
 		}
 	}
 
-	public GameAuth(AccountType type) {}
+	public GameAuth(AccountType type) {
+		AuthConstants.displayCopyrights();
+	}
 
 	/**
 	 * Connect to minecraft with a Microsoft account

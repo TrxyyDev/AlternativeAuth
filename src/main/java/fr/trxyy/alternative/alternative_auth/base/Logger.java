@@ -13,7 +13,7 @@ public class Logger {
 	 * @param s The text to log
 	 */
 	public static void log(String s) {
-		System.out.println(getTime() + s);
+		System.out.println(getName() + getTime() + s);
 	}
 
 	/**
@@ -21,7 +21,7 @@ public class Logger {
 	 * @param s The text to log
 	 */
 	public static void err(String s) {
-		System.err.println(getTime() + s);
+		System.err.println(getName() + getTime() + s);
 	}
 
 	/**
@@ -31,6 +31,10 @@ public class Logger {
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
 		return "[" + sdf.format(cal.getTime()) + "]";
+	}
+	
+	private static String getName() {
+		return "[AAuth]";
 	}
 
 }

@@ -29,6 +29,11 @@ public class AuthConstants {
 	public static Charset UTF_8 = Charset.forName("UTF-8");
 	
 	/**
+	 * Library Constants
+	 */
+	public static String VERSION_ID = "1.0.1";
+	
+	/**
 	 * @return A Gson to read json
 	 */
 	public static Gson getGson() {
@@ -36,6 +41,20 @@ public class AuthConstants {
 		gsonBuilder.enableComplexMapKeySerialization();
 		gsonBuilder.setPrettyPrinting();
 		return gsonBuilder.create();
+	}
+	
+	/**
+	 * Display some copyrights
+	 */
+	public static void displayCopyrights() {
+		Logger.log("========================================");
+		Logger.log("|            AlternativeAuth           |");
+		Logger.log("|            Version: " + getVersion() + "            |");
+		Logger.log("========================================");
+	}
+
+	private static String getVersion() {
+		return VERSION_ID;
 	}
 	
 }
