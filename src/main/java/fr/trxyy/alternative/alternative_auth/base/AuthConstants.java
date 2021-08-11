@@ -31,7 +31,7 @@ public class AuthConstants {
 	/**
 	 * Library Constants
 	 */
-	public static String VERSION_ID = "1.0.1";
+	public static String VERSION_ID = "1.0.2";
 	
 	/**
 	 * @return A Gson to read json

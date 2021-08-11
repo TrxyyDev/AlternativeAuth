@@ -1,8 +1,5 @@
 package fr.trxyy.alternative.alternative_auth.base;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-
 /**
  * @author Trxyy
  */
@@ -13,7 +10,7 @@ public class Logger {
 	 * @param s The text to log
 	 */
 	public static void log(String s) {
-		System.out.println(getName() + getTime() + s);
+		System.out.println(getName() + s);
 	}
 
 	/**
@@ -21,16 +18,7 @@ public class Logger {
 	 * @param s The text to log
 	 */
 	public static void err(String s) {
-		System.err.println(getName() + getTime() + s);
-	}
-
-	/**
-	 * @return The current time
-	 */
-	private static String getTime() {
-		Calendar cal = Calendar.getInstance();
-		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-		return "[" + sdf.format(cal.getTime()) + "]";
+		System.err.println(getName() + s);
 	}
 	
 	private static String getName() {
