@@ -41,8 +41,8 @@ public class Example extends Application {
 
 	private static Parent createMicrosoftPanel() {
 		Pane contentPane = new Pane();
+		/** Login Method **/
 		tryLogin(contentPane);
-
 		return contentPane;
 	}
 
