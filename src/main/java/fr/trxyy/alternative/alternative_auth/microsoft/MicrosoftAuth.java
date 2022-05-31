@@ -34,13 +34,21 @@ public class MicrosoftAuth {
 		Logger.log("Connecting to Microsoft services...");
 	}
 	
-    public Session getAuthorizationCode(String authCode) throws Exception
+    public MicrosoftModel getAuthorizationCode(ParamType type, String authCode) throws Exception
     {
-            MicrosoftModel model = AuthConstants.getGson().fromJson(this.connectMicrosoft(authCode), MicrosoftModel.class);
-            return this.getLiveToken(model.getAccess_token());
+            MicrosoftModel model = AuthConstants.getGson().fromJson(this.connectMicrosoft(type, authCode), MicrosoftModel.class);
+            Logger.log("Connecting with type: " + type);
+            return model;
     }
+	
+//    public Session getAuthorizationCode(String authCode) throws Exception
+//    {
+//            MicrosoftModel model = AuthConstants.getGson().fromJson(this.connectMicrosoft(authCode), MicrosoftModel.class);
+////            model.getRefresh_token();
+//            return this.getLiveToken(model.getAccess_token());
+//    }
     
-    private Session getLiveToken(String accessToken) throws Exception
+    public Session getLiveToken(String accessToken) throws Exception
     {
     		XboxLiveModel model = AuthConstants.getGson().fromJson(this.postInformations(ParamType.XBL, AuthConstants.MICROSOFT_AUTHENTICATE_XBOX, accessToken, null), XboxLiveModel.class);
         	return this.getXsts(model.getToken());
@@ -71,31 +79,28 @@ public class MicrosoftAuth {
 		return new Session(model.getName(), mcAccessToken, uuidValid);
     }
     
-    public String formatMicrosoft(String authCode) {
-    	final StringBuilder builder = new StringBuilder();
-        try
-        {
-            for (Entry<Object, Object> entry : getAuthParameters(ParamType.AUTH, authCode, null).entrySet())
-            {
-                if (builder.length() > 0) builder.append("&");
-                builder.append(URLEncoder.encode(entry.getKey().toString(), AuthConstants.UTF_8.name()));
-                builder.append("=");
-                builder.append(URLEncoder.encode(entry.getValue().toString(), AuthConstants.UTF_8.name()));
-            }
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        return builder.toString();
-    }
+	public String formatMicrosoft(ParamType paramType, String authCode) {
+		final StringBuilder builder = new StringBuilder();
+		try {
+			for (Entry<Object, Object> entry : getAuthParameters(paramType, authCode, null).entrySet()) {
+				if (builder.length() > 0) builder.append("&");
+				builder.append(URLEncoder.encode(entry.getKey().toString(), AuthConstants.UTF_8.name()));
+				builder.append("=");
+				builder.append(URLEncoder.encode(entry.getValue().toString(), AuthConstants.UTF_8.name()));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return builder.toString();
+	}
     
-    private String connectMicrosoft(String authCode)
+    private String connectMicrosoft(ParamType auth, String authCode)
     {
         HttpsURLConnection httpUrlConnection = null;
         byte[] bytes = null;
         try
         {
-        	bytes = this.formatMicrosoft(authCode).getBytes(AuthConstants.UTF_8);
+        	bytes = this.formatMicrosoft(auth, authCode).getBytes(AuthConstants.UTF_8);
             httpUrlConnection = (HttpsURLConnection) new URL(AuthConstants.MICROSOFT_AUTH_TOKEN).openConnection();
             httpUrlConnection.setRequestMethod("POST");
             httpUrlConnection.setRequestProperty("Content-Type", AuthConstants.URL_ENCODED);
@@ -218,6 +223,14 @@ public class MicrosoftAuth {
             parameters.put("client_id", "00000000402b5328");
             parameters.put("code", par2String);
             parameters.put("grant_type", "authorization_code");
+            parameters.put("redirect_uri", "https://login.live.com/oauth20_desktop.srf");
+            parameters.put("scope", "service::user.auth.xboxlive.com::MBI_SSL");
+        }
+        
+        if (param.equals(ParamType.REFRESH)) {
+            parameters.put("client_id", "00000000402b5328");
+            parameters.put("refresh_token", par2String);
+            parameters.put("grant_type", "refresh_token");
             parameters.put("redirect_uri", "https://login.live.com/oauth20_desktop.srf");
             parameters.put("scope", "service::user.auth.xboxlive.com::MBI_SSL");
         }
